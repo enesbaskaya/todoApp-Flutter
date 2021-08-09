@@ -1,11 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_app/extension.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../extension.dart';
 import 'my_notes.dart';
 
 class EmailSignIn extends StatefulWidget {
-  EmailSignIn({Key? key}) : super(key: key);
+  const EmailSignIn({Key? key}) : super(key: key);
 
   @override
   _EmailSignInState createState() => _EmailSignInState();
@@ -25,29 +26,33 @@ class _EmailSignInState extends State<EmailSignIn> {
     );
   }
 
-  Column buildSignInEmailPassForm(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 10),
-        TextFormField(
-          controller: emailController,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(labelText: 'Enter Email'),
-        ),
-        SizedBox(height: 20),
-        TextFormField(
-          controller: passwordController,
-          obscureText: true,
-          decoration: InputDecoration(labelText: 'Enter Password'),
-        ),
-        registerButton(context)
-      ],
+  Padding buildSignInEmailPassForm(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.dynamicWidth(0.05), vertical: context.dynamicHeight(0.03)),
+      child: Column(
+        children: [
+          Text('BSK TODO', style: GoogleFonts.pacifico(fontSize: 35)),
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(labelText: 'Enter Email'),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Enter Password'),
+          ),
+          registerButton(context)
+        ],
+      ),
     );
   }
 
   Container registerButton(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.only(top: 10),
         width: double.infinity,
         child: OutlinedButton(
           onPressed: () async {
@@ -63,24 +68,22 @@ class _EmailSignInState extends State<EmailSignIn> {
 
   Future<void> createSignInEmailPass(BuildContext context) async {
     try {
-      await auth.createUserWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => MyNotes()));
+      await auth.createUserWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyNotes()));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        print('The password provided is too weak.');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('The password provided is too weak.')));
       } else if (e.code == 'email-already-in-use') {
-        print('The account already exists for that email.');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('The account already exists for that email.')));
       }
     } catch (e) {
-      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: Colors.white),
       title: Text(
         'Email Sign In',
         style: TextStyle(color: context.whiteColor),

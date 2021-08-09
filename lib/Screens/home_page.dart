@@ -1,21 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_button/sign_button.dart';
-import 'package:todo_app/extension.dart';
 
+import '../extension.dart';
 import 'email_sign_in.dart';
 import 'my_notes.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key? key}) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  final _auth = FirebaseAuth.instance;
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -30,10 +31,14 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
         appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         body: SingleChildScrollView(
+          // ignore: avoid_unnecessary_containers
           child: Container(
               child: Column(
             children: [
-              buildLoginForm(context),
+              Text('BSK TODO', style: GoogleFonts.pacifico(fontSize: 35)),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: context.dynamicWidth(0.05), vertical: context.dynamicHeight(0.06)),
+                  child: buildLoginForm(context)),
               buildSignInButtons(context),
             ],
           )),
@@ -44,18 +49,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: [
         SignInButton(
-            buttonType: ButtonType.mail,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EmailSignIn(),
-                ),
-              );
-            }),
-        SignInButton(
-            buttonType: ButtonType.google,
-            onPressed: () => _signInWithGoogle()),
+            buttonType: ButtonType.mail, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EmailSignIn()))),
+        SignInButton(buttonType: ButtonType.google, onPressed: () => _signInWithGoogle()),
         SignInButton(buttonType: ButtonType.apple, onPressed: () {}),
         SignInButton(buttonType: ButtonType.linkedin, onPressed: () {}),
       ],
@@ -68,24 +63,18 @@ class _HomePageState extends State<HomePage> {
         TextFormField(
           keyboardType: TextInputType.emailAddress,
           controller: emailController,
-          decoration: InputDecoration(
-              labelText: 'Enter Email',
-              errorText: isUnValidEmail ? emailErrorText : null),
+          decoration: InputDecoration(labelText: 'Enter Email', errorText: isUnValidEmail ? emailErrorText : null),
         ),
         TextFormField(
           controller: passwordController,
           obscureText: true,
-          decoration: InputDecoration(
-              labelText: 'Enter Password',
-              errorText: isUnValidPassword ? passwordErrorText : null),
+          decoration: InputDecoration(labelText: 'Enter Password', errorText: isUnValidPassword ? passwordErrorText : null),
         ),
         Container(
-          padding: EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.only(top: 10),
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () async {
-              await loginButtonOnPressed(context);
-            },
+            onPressed: () => loginButtonOnPressed(context),
             child: Text(
               'Login',
               style: TextStyle(color: context.whiteColor),
@@ -101,19 +90,13 @@ class _HomePageState extends State<HomePage> {
     emailAndPasswordControl();
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => MyNotes()));
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyNotes()));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No user found for that email.')));
-        print('No user found for that email.');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No user found for that email.')));
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Wrong password provided for that user.')));
-        print('Wrong password provided for that user.');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wrong password provided for that user.')));
       }
     }
   }
@@ -122,8 +105,7 @@ class _HomePageState extends State<HomePage> {
   ///KONTROL EDİLECEK
   ///
   void emailAndPasswordControl() {
-    if (emailController.text.length <= 0 &&
-        passwordController.text.length > 0) {
+    if (emailController.text.isEmpty && passwordController.text.isNotEmpty) {
       setState(() {
         isUnValidEmail = true;
         isUnValidPassword = false;
@@ -131,9 +113,7 @@ class _HomePageState extends State<HomePage> {
         emailErrorText = 'object';
       });
     }
-    if (passwordController.text.length <= 0 &&
-        emailController.text.length > 0) {
-      print('ss');
+    if (passwordController.text.isEmpty && emailController.text.isNotEmpty) {
       setState(() {
         isUnValidEmail = false;
 
@@ -146,25 +126,20 @@ class _HomePageState extends State<HomePage> {
 
   _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuthentication =
-          await googleUser.authentication;
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication googleAuthentication = await googleUser!.authentication;
       var credential = GoogleAuthProvider.credential(
         accessToken: googleAuthentication.accessToken,
         idToken: googleAuthentication.idToken,
       );
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
       final User? user = userCredential.user;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Hoşgeldiniz, ${user?.displayName ?? 'dede'}')));
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => MyNotes()));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hoşgeldiniz, ${user?.displayName ?? 'dede'}')));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyNotes()));
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.code.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.code.toString())));
     } catch (e) {
-      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 }

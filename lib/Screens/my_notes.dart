@@ -2,25 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:todo_app/Screens/add_note.dart';
-import 'package:todo_app/Screens/home_page.dart';
-import 'package:todo_app/extension.dart';
 
+import '../extension.dart';
+import 'add_note.dart';
+import 'home_page.dart';
+
+// ignore: use_key_in_widget_constructors
 class MyNotes extends StatefulWidget {
   @override
   _MyNotesState createState() => _MyNotesState();
 }
 
 class _MyNotesState extends State<MyNotes> {
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  final _auth = FirebaseAuth.instance;
   User? user = FirebaseAuth.instance.currentUser;
-  CollectionReference noteColRef =
-      FirebaseFirestore.instance.collection('notes');
-  Stream<QuerySnapshot> _snapshotNotes = FirebaseFirestore.instance
-      .collection('notes')
-      .where('uid',
-          isEqualTo: FirebaseAuth.instance.currentUser!.uid.toString())
-      .snapshots();
+  CollectionReference noteColRef = FirebaseFirestore.instance.collection('notes');
+  final _snapshotNotes =
+      FirebaseFirestore.instance.collection('notes').where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid.toString()).snapshots();
 
   @override
   Widget build(BuildContext context) {
@@ -31,23 +29,22 @@ class _MyNotesState extends State<MyNotes> {
         stream: _snapshotNotes,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
-            return Text('hata oldu');
+            return const Text('hata oldu');
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Text('Loading');
+            return const Text('Loading');
           }
           return ListView(
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data =
-                  document.data() as Map<String, dynamic>;
-              return new ListTile(
+              Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+              return ListTile(
                 onTap: () {
                   setState(() {
                     noteColRef
                         .doc(document.id)
                         .update({'isCompleted': !(data['isCompleted'])})
-                        .then((value) => print('Completed Success'))
-                        .catchError((er) => print('Error'));
+                        .then((value) => debugPrint('Completed Success'))
+                        .catchError((er) => debugPrint('Error'));
                   });
                 },
                 onLongPress: () {
@@ -79,8 +76,7 @@ class _MyNotesState extends State<MyNotes> {
     return FloatingActionButton(
       backgroundColor: Colors.orange,
       onPressed: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => AddNote()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => AddNote()));
       },
       child: Icon(
         Icons.add,
@@ -100,10 +96,9 @@ class _MyNotesState extends State<MyNotes> {
                 await GoogleSignIn().disconnect();
                 await GoogleSignIn().signOut();
               }
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => HomePage()));
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
             },
-            icon: Icon(Icons.exit_to_app_rounded))
+            icon: const Icon(Icons.exit_to_app_rounded))
       ],
       iconTheme: IconThemeData(color: context.whiteColor),
       title: Column(
@@ -112,7 +107,7 @@ class _MyNotesState extends State<MyNotes> {
             'My Notes',
             style: TextStyle(color: context.whiteColor, fontSize: 25),
           ),
-          SizedBox(height: 3),
+          const SizedBox(height: 3),
           if (user?.email.toString() != null)
             Text(
               user!.email.toString(),

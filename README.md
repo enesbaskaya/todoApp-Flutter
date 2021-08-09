@@ -11,6 +11,7 @@ The packages I use are;
 - sign_button
 - fluttertoast
 - google_sign_in
+- flutter_lints
 
 ## Getting Started
 
